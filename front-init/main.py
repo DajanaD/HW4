@@ -1,5 +1,5 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import pathlib
+from pathlib import pathlib, Path
 import urllib.parse
 import mimetypes
 import socket
@@ -8,6 +8,14 @@ import threading
 import datetime
 
 class HttpHandler(BaseHTTPRequestHandler):
+
+    BASE_DIR = Path()  
+    PORT_HTTP = 3000
+    HOST_HTTP = "0.0.0.0"
+    SOCKET_HOST = "127.0.0.1"
+    SOCKET_PORT = 5000
+    BUFFER_SIZE = 1024
+
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers['Content-Length']))
@@ -20,33 +28,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         self.send_header('Location', '/')
         self.end_headers()
 
-    def echo_server(host, port):
-        with socket.socket() as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((host, port))
-            s.listen(1)
-            conn, addr = s.accept()
-            print(f"Connected by {addr}")
-            with conn:
-                while True:
-                    data = conn.recv(1024)
-                    print(f'From client: {data}')
-                    if not data:
-                        break
-                    conn.send(data.upper())
-
-    def simple_client(host, port):
-        with socket.socket() as s:
-            while True:
-                try:
-                    s.connect((host, port))
-                    s.sendall(b'Hello, world')
-                    data = s.recv(1024)
-                    print(f'From server: {data}')
-                    break
-                except ConnectionRefusedError:
-                    sleep(0.5)
-
+    
     def do_GET(self):
         pr_url = urllib.parse.urlparse(self.path)
         if pr_url.path == '/':
