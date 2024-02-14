@@ -7,6 +7,7 @@ from datetime import datetime
 from threading import Thread
 import logging
 import json
+from flask import Flask
 
 BASE_DIR = Path()  
 PORT_HTTP = 3000
@@ -61,15 +62,29 @@ class HttpHandler(BaseHTTPRequestHandler):
 
 def save_data(data):
     data_parse = urllib.parse.unquote_plus(data.decode())
-    data_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
-    new_dict = {datetime.now(): data_dict,}
     try:
-        file = open('storage/data.json')
-    except IOError as e:
-        print('file not found')
-    else:
-        with open('storage/data.json', "w") as fh:
-            json.dump(new_dict, fh)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        new_data = {current_time: {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}}
+
+        file_path = "storage/data.json"
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:  # спочатку читаєм та додаємо дані у словник
+                existing_data = json.load(file)
+        except FileNotFoundError: # Перевірка на файл
+            existing_data = {}
+        except ValueError: # Перевірка чи не пустий 
+            existing_data = {}
+
+        existing_data.update(new_data)
+
+        with open(file_path, "w", encoding="utf-8") as file:  # повністю перезатираєм дані
+            json.dump(existing_data, file, ensure_ascii=False, indent=2)
+
+    except ValueError as error:
+        logging.error(f"ValueError: {error}")
+    except OSError as oser:
+        logging.error(f"OSError: {oser}")
                        
 
 def run_socket_server(host, port):
@@ -84,6 +99,9 @@ def run_socket_server(host, port):
     except KeyboardInterrupt:
         server_socket.close()
 
+app = Flask(__name__)
+
+@app.route('/')
 def run_http_server(host, port):
     address = (host, port)
     http_server = HTTPServer(address, HttpHandler)
@@ -92,7 +110,8 @@ def run_http_server(host, port):
         http_server.serve_forever()
     except KeyboardInterrupt:
         http_server.server_close()
-
+    app.run(debug=False, host='0.0.0.0')
+            
 
 
 if __name__ == '__main__':
@@ -104,3 +123,4 @@ if __name__ == '__main__':
     ser_socker = Thread(target=run_socket_server, args=(SOCKET_HOST, SOCKET_PORT))
     ser_socker.start()
 
+    app.run(debug=False, host='0.0.0.0')
