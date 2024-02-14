@@ -66,7 +66,7 @@ def save_data(data):
     try:
         file = open('storage/data.json')
     except IOError as e:
-        print(u'не удалось открыть файл')
+        print('file not found')
     else:
         with open('storage/data.json', "w") as fh:
             json.dump(new_dict, fh)
