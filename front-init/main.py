@@ -85,8 +85,10 @@ def save_data(data):
         logging.error(f"ValueError: {error}")
     except OSError as oser:
         logging.error(f"OSError: {oser}")
-                       
 
+app = Flask(__name__)                       
+
+@app.route('/')
 def run_socket_server(host, port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_socket.bind((host, port))
@@ -99,7 +101,6 @@ def run_socket_server(host, port):
     except KeyboardInterrupt:
         server_socket.close()
 
-app = Flask(__name__)
 
 @app.route('/')
 def run_http_server(host, port):
