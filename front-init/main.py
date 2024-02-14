@@ -63,7 +63,7 @@ def save_data(data):
     data_parse = urllib.parse.unquote_plus(data.decode())
     data_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
     new_dict = {datetime.now(): data_dict,}
-    with open('storage\data.json', "w") as fh:
+    with open('storage/data.json', "w") as fh:
         json.dump(new_dict, fh)
                        
 
